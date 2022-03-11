@@ -14,6 +14,12 @@
 
 1. Clone repositoy
 1. cd into cloned repository
+1. Set env variables:
+   ```
+   export TF_VAR_subscription_id="<azure subscription id>"
+   export TF_VAR_db_user="<admin user name for db>"
+   export TF_VAR_db_password="<admin password for db>"
+   ```
 1. `terraform init`
 1. `terraform plan`; check for any issues
 1. `terraform apply`
