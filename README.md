@@ -10,6 +10,13 @@
 * Subscription and its id in Azure.
 
 
+## Run via (linux) command line
+
+1. Clone repositoy
+1. cd into cloned repository
+1. `terraform init`
+1. `terraform plan`; check for any issues
+1. `terraform apply`
 
 
 
