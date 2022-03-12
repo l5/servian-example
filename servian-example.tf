@@ -22,6 +22,16 @@ variable "subscription_id" {
 
 # ToDo: Document setting env vars etc.
 
+terraform {
+    required_providers {
+        azurerm = {
+            /* it is recommended to be pinned according to https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview,
+                as the upgrade to 3.0 seems to be coming up soon - with breaking changes. */
+            version = "=2.99.0"
+        }  
+    }
+}
+
 provider "azurerm" {
   features {}
   subscription_id = var.subscription_id # should be explicit, as otherwise the infrastructure might land in the wrong one.
