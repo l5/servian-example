@@ -43,16 +43,28 @@ resource "azurerm_resource_group" "servian" {
 }
 
 resource "azurerm_postgresql_flexible_server" "servian" {
+  # ToDo: VNET enforcement, as ssl is not possible
   name                   = "servian-psqlflexibleserver-dc2022" # needs to be unique across azure
   resource_group_name    = azurerm_resource_group.servian.name
   location               = azurerm_resource_group.servian.location
   version                = "11" # This is an untested version for the app, but Azure only offers the supported version "10" in a non-high-availability scenario
   administrator_login    = var.db_user
   administrator_password = var.db_password
+  zone = 3 # If this is not static, the resource will be re-created each time tf apply is invoked
 
   # ToDo: Include high availability
   storage_mb = 32768 # this is the minimum value and should be enough for a demo app
 
   sku_name   = "B_Standard_B1ms" # Check tf documentation for format; using smallest possible here as it is a demo
   # ToDo: Update to high availability capable size
+}
+
+/* It seems like SSL is not enabled in the golang app / psql connection. We could either enable it in the code and 
+   create a new docker image, or we disable it on the server. The latter solution is not appropriate for production 
+   installations for security versions, but as the task explicitly states that re-building the app should not be 
+   necessary, we switch the SSL/TLS requirement off on the db server. */
+resource "azurerm_postgresql_flexible_server_configuration" "ssl_off" {
+  name      = "require_secure_transport"
+  server_id = azurerm_postgresql_flexible_server.servian.id
+  value     = "off"
 }
