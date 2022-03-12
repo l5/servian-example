@@ -104,7 +104,7 @@ resource "azurerm_app_service" "example" {
     VTT_DBPORT = 5432
     VTT_DBHOST = azurerm_postgresql_flexible_server.servian.fqdn
     VTT_LISTENHOST = "0.0.0.0"
-    VTT_LISTENPORT = 3000
+    VTT_LISTENPORT = 80
   }
   https_only = true
   #app_settings = {
