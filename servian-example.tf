@@ -50,6 +50,7 @@ resource "azurerm_postgresql_flexible_server" "servian" {
   version                = "11" # This is an untested version for the app, but Azure only offers the supported version "10" in a non-high-availability scenario
   administrator_login    = var.db_user
   administrator_password = var.db_password
+  zone = 3 # If this is not static, the resource will be re-created each time tf apply is invoked
 
   # ToDo: Include high availability
   storage_mb = 32768 # this is the minimum value and should be enough for a demo app
