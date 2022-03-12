@@ -125,9 +125,10 @@ resource "azurerm_container_group" "servian-seeding" {
   name                = "servian-seeding"
   location            = azurerm_resource_group.servian.location
   resource_group_name = azurerm_resource_group.servian.name
-  ip_address_type     = "public" # ToDo: Switch to private
+  ip_address_type     = "private"
   os_type             = "Linux"
   depends_on = [azurerm_postgresql_flexible_server_configuration.ssl_off]
+  network_profile_id = azurerm_network_profile.servian-vnet.id
   container {
     name   = "servian-seed"
     image  = "servian/techchallengeapp:latest"
@@ -143,7 +144,7 @@ resource "azurerm_container_group" "servian-seeding" {
         VTT_LISTENHOST = "0.0.0.0"
         VTT_LISTENPORT = 80
     }
-    commands = ["/TechChallengeApp/TechChallengeApp updatedb -s"]
+    commands = ["/TechChallengeApp/TechChallengeApp", "updatedb", "-s"]
   
     ports {
       port = 4141
@@ -164,7 +165,6 @@ resource "azurerm_subnet" "serviansubnet" {
   resource_group_name  = azurerm_resource_group.servian.name
   virtual_network_name = azurerm_virtual_network.servianet.name
   address_prefixes     = ["10.0.2.0/24"]
-  # service_endpoints    = ["Microsoft.Storage"]
   delegation {
     name = "fs"
     service_delegation {
@@ -180,11 +180,26 @@ resource "azurerm_subnet" "serviansubnetapp" {
   resource_group_name  = azurerm_resource_group.servian.name
   virtual_network_name = azurerm_virtual_network.servianet.name
   address_prefixes     = ["10.0.3.0/24"]
-  # service_endpoints    = ["Microsoft.Storage"]
   delegation {
     name = "fs"
     service_delegation {
       name = "Microsoft.Web/serverFarms"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
+}
+resource "azurerm_subnet" "serviansubnetseed" {
+  name                 = "servian-snseed"
+  resource_group_name  = azurerm_resource_group.servian.name
+  virtual_network_name = azurerm_virtual_network.servianet.name
+  address_prefixes     = ["10.0.5.0/24"]
+  # service_endpoints    = ["Microsoft.Storage"]
+  delegation {
+    name = "fs"
+    service_delegation {
+      name = "Microsoft.ContainerInstance/containerGroups"
       actions = [
         "Microsoft.Network/virtualNetworks/subnets/join/action",
       ]
@@ -213,7 +228,7 @@ resource "azurerm_network_profile" "servian-vnet" {
 
     ip_configuration {
       name      = "servianipconfig"
-      subnet_id = azurerm_subnet.serviansubnet.id
+      subnet_id = azurerm_subnet.serviansubnetseed.id
     }
   }
 }
