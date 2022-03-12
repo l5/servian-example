@@ -47,3 +47,46 @@ resource "azurerm_postgresql_flexible_server" "servian" {
   sku_name   = "B_Standard_B1ms" # Check tf documentation for format; using smallest possible here as it is a demo
   # ToDo: Update to high availability capable size
 }
+
+resource "azurerm_app_service_plan" "servian" {
+  name                = "servian-appserviceplan"
+  location            = azurerm_resource_group.servian.location
+  resource_group_name = azurerm_resource_group.servian.name
+  kind = "Linux"
+  sku {
+    tier = "Standard"
+    size = "S1" # "Standard" seems to be the lowest one supporting autoscaling
+  }
+    reserved = true # Mandatory for Linux plans
+}
+
+resource "azurerm_app_service" "example" {
+  name                = "servian-dc-202203-appservice"
+  location            = azurerm_resource_group.servian.location
+  resource_group_name = azurerm_resource_group.servian.name
+  app_service_plan_id = azurerm_app_service_plan.servian.id
+  
+
+  site_config {
+      linux_fx_version  = "DOCKER|servian/techchallengeapp:latest" #define the images to usecfor you application
+      always_on        = "true"
+      app_command_line = "serve"
+  }
+
+  app_settings = {
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
+    VTT_DBUSER = var.db_user
+    VTT_DBPASSWORD = var.db_password
+    VTT_DBNAME = "postgres"
+    VTT_DBPORT = 5432
+    VTT_DBHOST = azurerm_postgresql_flexible_server.servian.fqdn
+    VTT_LISTENHOST = "0.0.0.0"
+    VTT_LISTENPORT = 3000
+  }
+  https_only = true
+  #app_settings = {
+  #  "DOCKER_REGISTRY_SERVER_URL"      = "https://mcr.microsoft.com",
+  #  "DOCKER_REGISTRY_SERVER_USERNAME" = "",
+  #  "DOCKER_REGISTRY_SERVER_PASSWORD" = "",
+  #}
+}
