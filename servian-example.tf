@@ -88,7 +88,7 @@ resource "azurerm_app_service" "example" {
   location            = azurerm_resource_group.servian.location
   resource_group_name = azurerm_resource_group.servian.name
   app_service_plan_id = azurerm_app_service_plan.servian.id
-  
+  depends_on = [azurerm_container_group.servian-seeding]
 
   site_config {
       linux_fx_version  = "DOCKER|servian/techchallengeapp:latest" #define the images to usecfor you application
@@ -113,3 +113,35 @@ resource "azurerm_app_service" "example" {
   #  "DOCKER_REGISTRY_SERVER_PASSWORD" = "",
   #}
 }
+
+resource "azurerm_container_group" "servian-seeding" {
+  name                = "servian-seeding"
+  location            = azurerm_resource_group.servian.location
+  resource_group_name = azurerm_resource_group.servian.name
+  ip_address_type     = "public" # ToDo: Switch to private
+  os_type             = "Linux"
+  depends_on = [azurerm_postgresql_flexible_server_configuration.ssl_off]
+  container {
+    name   = "servian-seed"
+    image  = "servian/techchallengeapp:latest"
+    cpu    = "0.5"
+    memory = "1.5"
+    environment_variables = { # ToDo: Set to secure
+        WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
+        VTT_DBUSER = var.db_user
+        VTT_DBPASSWORD = var.db_password
+        VTT_DBNAME = "postgres"
+        VTT_DBPORT = 5432
+        VTT_DBHOST = azurerm_postgresql_flexible_server.servian.fqdn
+        VTT_LISTENHOST = "0.0.0.0"
+        VTT_LISTENPORT = 80
+    }
+    commands = ["/TechChallengeApp/TechChallengeApp updatedb -s"]
+  
+    ports {
+      port = 4141
+      protocol = "TCP"
+    }
+  }
+}
+
