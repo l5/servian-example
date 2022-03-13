@@ -54,6 +54,7 @@ resource "azurerm_postgresql_flexible_server" "servian" {
   zone = 3 # If this is not static, the resource will be re-created each time tf apply is invoked
   delegated_subnet_id    = azurerm_subnet.serviansubnet.id
   private_dns_zone_id    = azurerm_private_dns_zone.servian.id
+  depends_on = [azurerm_private_dns_zone_virtual_network_link.servian]
 
   # ToDo: Include high availability
   storage_mb = 32768 # this is the minimum value and should be enough for a demo app
