@@ -49,7 +49,7 @@ The application is deployed via a local computer with Ubuntu 20.04 and terraform
 - [x] Not connected to a particular **cloud account** _Correct; needs a subscription id as a parameter / variable_
 - [x] **Regular commits**; git workflow _Used feature branches + PRs; not really perfect, but probably good enough. It is hard to use proper branching strategies when working with terraform, because the long running "apply" commands require asynchronous working, often based on the latest changes._
 - [x] **Documentation**: Pre-requisites
-- [ ] **Documentation**: High-Level Architecture
+- [x] **Documentation**: High-Level Architecture
 - [x] **Documentation**: Process instructions for provisioning
 - [x] Able to **start from a cloned git repo** _Yes; to be cloned into Ubuntu20.04 via WSL. Github actions would have been more fun though._
 - [x] **Pre-requisites** clearly documented
