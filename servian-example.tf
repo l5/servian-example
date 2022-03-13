@@ -131,6 +131,10 @@ resource "azurerm_container_group" "servian-seeding" {
   depends_on = [azurerm_postgresql_flexible_server_configuration.ssl_off]
   network_profile_id = azurerm_network_profile.servian-vnet.id
   restart_policy      = "OnFailure"
+  tags                = {}
+  lifecycle {
+    ignore_changes = [tags]
+  }
   container {
     name   = "servian-seed"
     image  = "servian/techchallengeapp:latest"
@@ -172,7 +176,7 @@ resource "azurerm_subnet" "serviansubnet" {
     service_delegation {
       name = "Microsoft.DBforPostgreSQL/flexibleServers"
       actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
+        "Microsoft.Network/virtualNetworks/subnets/action",
       ]
     }
   }
@@ -187,7 +191,7 @@ resource "azurerm_subnet" "serviansubnetapp" {
     service_delegation {
       name = "Microsoft.Web/serverFarms"
       actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
+        "Microsoft.Network/virtualNetworks/subnets/action",
       ]
     }
   }
@@ -203,7 +207,7 @@ resource "azurerm_subnet" "serviansubnetseed" {
     service_delegation {
       name = "Microsoft.ContainerInstance/containerGroups"
       actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
+        "Microsoft.Network/virtualNetworks/subnets/action",
       ]
     }
   }
@@ -286,3 +290,27 @@ resource "azurerm_monitor_autoscale_setting" "servian" {
     }
   }  
 }
+/* CDN */
+resource "azurerm_cdn_profile" "servian" {
+  name                = "servian-dc2022-cdn"
+  location            = azurerm_resource_group.servian.location
+  resource_group_name = azurerm_resource_group.servian.name
+  sku                 = "Standard_Microsoft"
+}
+
+resource "azurerm_cdn_endpoint" "servian" {
+  name                = "awesome-servian-example-app"
+  profile_name        = azurerm_cdn_profile.servian.name
+  location            = "global"
+  resource_group_name = azurerm_resource_group.servian.name
+  is_http_allowed     = true
+  origin_host_header  = "servian-dc-202203-appservice.azurewebsites.net"
+  lifecycle {
+    ignore_changes = [tags]
+  }
+  origin {
+    name      = "servian-webapp-origin"
+    host_name = "servian-dc-202203-appservice.azurewebsites.net"
+  }
+}
+
