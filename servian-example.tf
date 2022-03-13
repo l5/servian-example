@@ -179,7 +179,7 @@ resource "azurerm_subnet" "serviansubnet" {
     service_delegation {
       name = "Microsoft.DBforPostgreSQL/flexibleServers"
       actions = [
-        "Microsoft.Network/virtualNetworks/subnets/action",
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
       ]
     }
   }
