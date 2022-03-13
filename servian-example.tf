@@ -3,6 +3,7 @@
 #
 # Used elements:
 #  * Azure Postgresql Flexible Server: https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/postgresql_flexible_server
+#  * Azure App Service: https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/app_service
 #
 
 
@@ -51,6 +52,9 @@ resource "azurerm_postgresql_flexible_server" "servian" {
   administrator_login    = var.db_user
   administrator_password = var.db_password
   zone = 3 # If this is not static, the resource will be re-created each time tf apply is invoked
+  delegated_subnet_id    = azurerm_subnet.serviansubnet.id
+  private_dns_zone_id    = azurerm_private_dns_zone.servian.id
+  depends_on = [azurerm_private_dns_zone_virtual_network_link.servian]
 
   # ToDo: Include high availability
   storage_mb = 32768 # this is the minimum value and should be enough for a demo app
@@ -67,4 +71,165 @@ resource "azurerm_postgresql_flexible_server_configuration" "ssl_off" {
   name      = "require_secure_transport"
   server_id = azurerm_postgresql_flexible_server.servian.id
   value     = "off"
+}
+
+
+resource "azurerm_app_service_plan" "servian" {
+  name                = "servian-appserviceplan"
+  location            = azurerm_resource_group.servian.location
+  resource_group_name = azurerm_resource_group.servian.name
+  kind = "Linux"
+  sku {
+    tier = "Standard"
+    size = "S1" # "Standard" seems to be the lowest one supporting autoscaling
+  }
+    reserved = true # Mandatory for Linux plans
+}
+
+resource "azurerm_app_service" "example" {
+  name                = "servian-dc-202203-appservice"
+  location            = azurerm_resource_group.servian.location
+  resource_group_name = azurerm_resource_group.servian.name
+  app_service_plan_id = azurerm_app_service_plan.servian.id
+  depends_on = [azurerm_container_group.servian-seeding]
+
+  site_config {
+      linux_fx_version  = "DOCKER|servian/techchallengeapp:latest" #define the images to usecfor you application
+      always_on        = "true"
+      app_command_line = "serve"
+  }
+
+  app_settings = {
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
+    VTT_DBUSER = var.db_user
+    VTT_DBPASSWORD = var.db_password
+    VTT_DBNAME = "postgres"
+    VTT_DBPORT = 5432
+    VTT_DBHOST = azurerm_postgresql_flexible_server.servian.fqdn
+    VTT_LISTENHOST = "0.0.0.0"
+    VTT_LISTENPORT = 80
+  }
+  https_only = true
+  #app_settings = {
+  #  "DOCKER_REGISTRY_SERVER_URL"      = "https://mcr.microsoft.com",
+  #  "DOCKER_REGISTRY_SERVER_USERNAME" = "",
+  #  "DOCKER_REGISTRY_SERVER_PASSWORD" = "",
+  #}
+}
+
+resource "azurerm_app_service_virtual_network_swift_connection" "example" {
+  app_service_id = azurerm_app_service.example.id
+  subnet_id      = azurerm_subnet.serviansubnetapp.id
+}
+
+resource "azurerm_container_group" "servian-seeding" {
+  name                = "servian-seeding"
+  location            = azurerm_resource_group.servian.location
+  resource_group_name = azurerm_resource_group.servian.name
+  ip_address_type     = "private"
+  os_type             = "Linux"
+  depends_on = [azurerm_postgresql_flexible_server_configuration.ssl_off]
+  network_profile_id = azurerm_network_profile.servian-vnet.id
+  container {
+    name   = "servian-seed"
+    image  = "servian/techchallengeapp:latest"
+    cpu    = "0.5"
+    memory = "1.5"
+    environment_variables = { # ToDo: Set to secure
+        WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
+        VTT_DBUSER = var.db_user
+        VTT_DBPASSWORD = var.db_password
+        VTT_DBNAME = "postgres"
+        VTT_DBPORT = 5432
+        VTT_DBHOST = azurerm_postgresql_flexible_server.servian.fqdn
+        VTT_LISTENHOST = "0.0.0.0"
+        VTT_LISTENPORT = 80
+    }
+    commands = ["/TechChallengeApp/TechChallengeApp", "updatedb", "-s"]
+  
+    ports {
+      port = 4141
+      protocol = "TCP"
+    }
+  }
+}
+
+resource "azurerm_virtual_network" "servianet" {
+  name                = "servian-vn"
+  location            = azurerm_resource_group.servian.location
+  resource_group_name = azurerm_resource_group.servian.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "serviansubnet" {
+  name                 = "servian-sn"
+  resource_group_name  = azurerm_resource_group.servian.name
+  virtual_network_name = azurerm_virtual_network.servianet.name
+  address_prefixes     = ["10.0.2.0/24"]
+  delegation {
+    name = "fs"
+    service_delegation {
+      name = "Microsoft.DBforPostgreSQL/flexibleServers"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
+}
+resource "azurerm_subnet" "serviansubnetapp" {
+  name                 = "servian-snapp"
+  resource_group_name  = azurerm_resource_group.servian.name
+  virtual_network_name = azurerm_virtual_network.servianet.name
+  address_prefixes     = ["10.0.3.0/24"]
+  delegation {
+    name = "fs"
+    service_delegation {
+      name = "Microsoft.Web/serverFarms"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
+}
+resource "azurerm_subnet" "serviansubnetseed" {
+  name                 = "servian-snseed"
+  resource_group_name  = azurerm_resource_group.servian.name
+  virtual_network_name = azurerm_virtual_network.servianet.name
+  address_prefixes     = ["10.0.5.0/24"]
+  # service_endpoints    = ["Microsoft.Storage"]
+  delegation {
+    name = "fs"
+    service_delegation {
+      name = "Microsoft.ContainerInstance/containerGroups"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
+}
+resource "azurerm_private_dns_zone" "servian" {
+  name                = "servian-dc2022.postgres.database.azure.com"
+  resource_group_name = azurerm_resource_group.servian.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "servian" {
+  name                  = "exampleVnetZone.com"
+  private_dns_zone_name = azurerm_private_dns_zone.servian.name
+  virtual_network_id    = azurerm_virtual_network.servianet.id
+  resource_group_name   = azurerm_resource_group.servian.name
+}
+
+resource "azurerm_network_profile" "servian-vnet" {
+  name                = "serviannetprofile"
+  location            = azurerm_resource_group.servian.location
+  resource_group_name = azurerm_resource_group.servian.name
+
+  container_network_interface {
+    name = "serviancnic"
+
+    ip_configuration {
+      name      = "servianipconfig"
+      subnet_id = azurerm_subnet.serviansubnetseed.id
+    }
+  }
 }
