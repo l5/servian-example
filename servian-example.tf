@@ -363,7 +363,9 @@ resource "azurerm_key_vault_access_policy" "installer" {
   secret_permissions = [
     "Get",
     "Set",
-    "List"
+    "List",
+    "Delete",
+    "Purge" # This is security-wise not ideal, but otherwise we couldn't destroy with terraform
   ]
 }
 
@@ -377,4 +379,5 @@ resource "azurerm_key_vault_access_policy" "app" {
     "Set",
     "List"
   ]
+  
 }
