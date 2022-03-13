@@ -60,8 +60,8 @@ resource "azurerm_postgresql_flexible_server" "servian" {
   # ToDo: Include high availability
   storage_mb = 32768 # this is the minimum value and should be enough for a demo app
 
-  /* B_Standard_B1ms is the smallest possibility without high availability; D_Standard_D2ds_v4 for high availability */
-  sku_name   = "D_Standard_D2ds_v4" # Check tf documentation for format
+  /* B_Standard_B1ms is the smallest possibility without high availability; GP_Standard_D2ds_v4 for high availability */
+  sku_name   = "GP_Standard_D2ds_v4" # Check tf documentation for format
 
   high_availability {
     mode = "ZoneRedundant"
