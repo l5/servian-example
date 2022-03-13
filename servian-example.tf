@@ -44,7 +44,6 @@ resource "azurerm_resource_group" "servian" {
 }
 
 resource "azurerm_postgresql_flexible_server" "servian" {
-  # ToDo: VNET enforcement, as ssl is not possible
   name                   = "servian-psqlflexibleserver-dc2022" # needs to be unique across azure
   resource_group_name    = azurerm_resource_group.servian.name
   location               = azurerm_resource_group.servian.location
