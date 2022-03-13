@@ -1,5 +1,11 @@
 # servian-example
 
+## Architecture
+
+![High level architecture](pic/high-level-architecture.png)
+
+The application is deployed via a local computer with Ubuntu 20.04 and terraform into an empty Azure subscription. Terraform creates a resource group with a web app including CDN and a database, as well as an ACI with a separate docker container to seed the database. Docker images for web app and ACI are sourced from the public docker registry. All internal connections between web app, database and ACI are secure via a VNet.
+
 ## Prerequisites
 
 * terraform 1.1.7 (see https://www.terraform.io/downloads)
@@ -8,7 +14,7 @@
 * WSL2 / Ubuntu-20.04, as the solution is tested in this environment 
 
 
-## Run via (linux) command line
+## Deploy via (linux) command line
 
 1. Clone repositoy
 1. cd into cloned repository
@@ -31,7 +37,7 @@
 * I worked with a "main" branch + feature branches as well as PRs, but also committed to "main" occasionally. This seemed reasonable for me working alone on the project and still achieving a level of traceability that allows judging my work style. In a larger setting I might work with an additional DEV branch and releases and reviewed PRs, or a ready-to-go fully featured concept.
 * Settings including secrets pass through docker. That's not ideal, as credentials are stored in clear text in the docker state file. Ideally, the solution would use a managed identity to get the credentials from a key vault. Due to time constraints I decided for the simpler solution.
 * Settings including the db password are stored in the "app settings" and can easily be read out. The recommended, more secure alternative is, to reference secrets stored in a key vault. I tried hard, but it just didn't work. As colleagues of mine and myself had similar issues with referenced secrets in the past, I gave up, considering the time constraints, and left the secrets in the app settings.
-* Some values are hard coded; the app name and its domain, etc. This means, that the application with this code can be installed only once. I know this is not ideal and would use more variables in the next project. My intention was, to keep the "run instructions" as simple as possible (3 variables are much easier to configure than 30), but I have now changed my mind and think I should at least have created variables with a default value in terraform.
+* Some values are globally unique: the app name and its domain, etc. This means, that the application with this code can be installed only once. As someone has to test and inspect this code, I tried to keep the "run instructions" as simple as possible (3 variables are much easier to configure than 30), but those names are still changeable via tf variables.
 * I seed the db with the help of an ACI container that runs only once. While it fulfils the purpose, a solution with more observability (did seeding work? if not, why did it fail?) would be desireable.
 * I was not sure if the golang web server is production stable and secure. I assume one might check this in a real-life scenario and possibly combine it with nginx or apache2, or a better WAF.
 
@@ -49,9 +55,9 @@
 - [x] Contained **within a github repo** _Yes; actually it's one file._
 - [x] Deploys via **automated process** _Yes; all via terraform. ACI is probably not the ideal solution for seeding, but a good compromise in terms of keeping it all simple._
 - [x] Deploys **infrastructure using code** _Yes; infrastructure is defined via terraform._
-- [ ] Code is **clear**
-- [ ] Code contains **comments**
-- [ ] Coding is **consistent**
+- [x] Code is **clear** _In my opinion it is; I tried to make it as readable as possible._
+- [x] Code contains **comments** _Yes; a lot._
+- [x] Coding is **consistent** _That's subjective - I think it is, but I assume that if I had attended a terraform course, it would be even more consistend._
 - [x] **Security**: Network segmentation? VNet is created to secure the unencrypted communication between the db and the application
 - [x] **Security**: Secret storage _Secrets are stored in
     - environment variables in the ACI container
