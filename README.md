@@ -42,26 +42,26 @@
 
 ## Requirement Checklist
 
-- [x] Works in empty cloud subscription: Yes; creates a resource group.
-- [] Use release package; do not compile
-- [] Not connected to a particular cloud account
-[] Regular commits; git workflow
-[] Documentation: Pre-requisites
-[] Documentation: High-Level Architecture
-[] Documentation: Process instructions for provisioning
-[] Able to start from a cloned git repo
-[] Pre-requisites clearly documented
-[] Contained within a github repo
-[] Deploys via automated process
-[] Deploys infrastructure using code
-[] Code is clear
-[] Code contains comments
-[] Coding is consistent
-[] Security: Network segmentation?
-[] Security: Secret storage
-[] Security: Platform security features
-[] Simplicity: No superfluous dependencies
-[] Simplicity: Not over engineered
-[] Resiliency: Auto scaling
-[] Resiliency: Highly available frontend
-[] Resiliency: Highly available database
+- [x] Works in empty cloud subscription: _Yes; tf code creates a resource group in the given subscription._
+- [x] Use release package; do not compile _Yes; uses pre-built docker image_
+- [x] Not connected to a particular cloud account _Correct; needs a subscription id as a parameter / variable_
+- [x] Regular commits; git workflow _Used feature branches + PRs; not really perfect, but probably good enough. It is hard to use proper branching strategies when working with terraform, because the long running "apply" commands require asynchronous working, often based on the latest changes._
+- [ ] Documentation: Pre-requisites
+- [ ] Documentation: High-Level Architecture
+- [ ] Documentation: Process instructions for provisioning
+- [x] Able to start from a cloned git repo _Yes; to be cloned into Ubuntu20.04 via WSL. Github actions would have been more fun though._
+- [ ] Pre-requisites clearly documented
+- [x] Contained within a github repo _Yes; actually it's one file._
+- [x] Deploys via automated process _Yes; all via terraform. ACI is probably not the ideal solution for seeding, but a good compromise in terms of keeping it all simple._
+- [x] Deploys infrastructure using code _Yes; infrastructure is defined via terraform._
+- [ ] Code is clear
+- [ ] Code contains comments
+- [ ] Coding is consistent
+- [ ] Security: Network segmentation?
+- [ ] Security: Secret storage
+- [ ] Security: Platform security features
+- [ ] Simplicity: No superfluous dependencies
+- [ ] Simplicity: Not over engineered
+- [ ] Resiliency: Auto scaling
+- [ ] Resiliency: Highly available frontend
+- [ ] Resiliency: Highly available database
