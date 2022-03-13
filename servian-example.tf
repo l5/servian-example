@@ -130,6 +130,7 @@ resource "azurerm_container_group" "servian-seeding" {
   os_type             = "Linux"
   depends_on = [azurerm_postgresql_flexible_server_configuration.ssl_off]
   network_profile_id = azurerm_network_profile.servian-vnet.id
+  restart_policy      = "OnFailure"
   container {
     name   = "servian-seed"
     image  = "servian/techchallengeapp:latest"
