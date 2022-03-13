@@ -114,7 +114,7 @@ resource "azurerm_app_service_plan" "servian" {
     tier = "Standard"
     size = "S1" # "Standard" seems to be the lowest one supporting autoscaling
   }
-    reserved = true # Mandatory for Linux plans
+  reserved = true # Mandatory for Linux plans
 }
 
 resource "azurerm_app_service" "example" {
