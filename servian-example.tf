@@ -4,52 +4,55 @@
 # Used elements:
 #  * Azure Postgresql Flexible Server: https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/postgresql_flexible_server
 #  * Azure App Service: https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/app_service
-#
+#  * Azure 
 
 
 # We use variables here so we don't need to have the credentials in the repo
 # The first three variables are mandatory to be set via environment variables before
 # running the tf script (see documentation)
 variable "db_user" {
-    type = string
-    description = "The username for the postgresql db"
+  type = string
+  description = "The username for the postgresql db"
 }
 variable "db_password" {
-    type = string
-    description = "The password for the postgresql db"
-    sensitive   = true
+  type = string
+  description = "The password for the postgresql db"
+  sensitive   = true
 }
 variable "subscription_id" {
-    type = string
-    description = "The id of the azure subscription the app should be installed in"
+  type = string
+  description = "The id of the azure subscription the app should be installed in"
 }
 
 /* For the next few variables there should be no need to change them; except if someone else happened to 
  * choose the same globally unique names */
 variable "database_server_name" {
-    type = string
-    description = "Globally unique (across azure) hostname for the postgresql flex server"
-    default = "servian-psqlflexibleserver-dc2022"
+  type = string
+  description = "Globally unique (across azure) hostname for the postgresql flex server"
+  default = "servian-psqlflexibleserver-dc2022"
 }
 variable "app_dns_name" {
-    type = string
-    description = "Globally unique (across azure) hostname for the web app"
-    default = "servian-dc-202203-appservice"
+  type = string
+  description = "Globally unique (across azure) hostname for the web app"
+  default = "servian-dc-202203-appservice"
 }
 variable "dns_zone_name" {
-    type = string
-    description = "Globally unique (across azure) name for the dns zone"
-    default = "servian-dc-202203-appservice"
+  type = string
+  description = "Globally unique (across azure) name for the dns zone"
+  default = "servian-dc-202203-appservice"
 }
 
+/**********************************
+ *********** Initialization *******
+ **********************************/
 terraform {
-    required_providers {
-        azurerm = {
-            /* it is recommended to be pinned according to https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview,
-                as the upgrade to 3.0 seems to be coming up soon - with breaking changes. */
-            version = "=2.99.0"
-        }  
-    }
+  required_providers {
+    azurerm = {
+      /* it is recommended to be pinned according to https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview,
+       * as the upgrade to 3.0 seems to be coming up soon - with breaking changes. */
+      version = "=2.99.0"
+    }  
+  }
 }
 
 provider "azurerm" {
@@ -212,6 +215,7 @@ resource "azurerm_subnet" "serviansubnet" {
     }
   }
 }
+
 resource "azurerm_subnet" "serviansubnetapp" {
   name                 = "servian-snapp"
   resource_group_name  = azurerm_resource_group.servian.name
@@ -227,6 +231,7 @@ resource "azurerm_subnet" "serviansubnetapp" {
     }
   }
 }
+
 resource "azurerm_subnet" "serviansubnetseed" {
   name                 = "servian-snseed"
   resource_group_name  = azurerm_resource_group.servian.name
@@ -242,6 +247,7 @@ resource "azurerm_subnet" "serviansubnetseed" {
     }
   }
 }
+
 resource "azurerm_private_dns_zone" "servian" {
   name                = "{var.dns_zone_name}.postgres.database.azure.com"
   resource_group_name = azurerm_resource_group.servian.name
