@@ -60,8 +60,12 @@ resource "azurerm_postgresql_flexible_server" "servian" {
   # ToDo: Include high availability
   storage_mb = 32768 # this is the minimum value and should be enough for a demo app
 
-  sku_name   = "B_Standard_B1ms" # Check tf documentation for format; using smallest possible here as it is a demo
-  # ToDo: Update to high availability capable size
+  /* B_Standard_B1ms is the smallest possibility without high availability; D_Standard_D2ds_v4 for high availability */
+  sku_name   = "D_Standard_D2ds_v4" # Check tf documentation for format
+
+  high_availability {
+    mode = "ZoneRedundant"
+  }
 }
 
 /* It seems like SSL is not enabled in the golang app / psql connection. We could either enable it in the code and 
