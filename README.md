@@ -42,30 +42,30 @@
 
 ## Requirement Checklist
 
-- [x] Works in empty cloud subscription: _Yes; tf code creates a resource group in the given subscription._
-- [x] Use release package; do not compile _Yes; uses pre-built docker image_
-- [x] Not connected to a particular cloud account _Correct; needs a subscription id as a parameter / variable_
-- [x] Regular commits; git workflow _Used feature branches + PRs; not really perfect, but probably good enough. It is hard to use proper branching strategies when working with terraform, because the long running "apply" commands require asynchronous working, often based on the latest changes._
-- [ ] Documentation: Pre-requisites
-- [ ] Documentation: High-Level Architecture
-- [ ] Documentation: Process instructions for provisioning
-- [x] Able to start from a cloned git repo _Yes; to be cloned into Ubuntu20.04 via WSL. Github actions would have been more fun though._
-- [ ] Pre-requisites clearly documented
-- [x] Contained within a github repo _Yes; actually it's one file._
-- [x] Deploys via automated process _Yes; all via terraform. ACI is probably not the ideal solution for seeding, but a good compromise in terms of keeping it all simple._
-- [x] Deploys infrastructure using code _Yes; infrastructure is defined via terraform._
-- [ ] Code is clear
-- [ ] Code contains comments
-- [ ] Coding is consistent
-- [x] Security: Network segmentation? VNet is created to secure the unencrypted communication between the db and the application
-- [x] Security: Secret storage _Secrets are stored in
+- [x] Works in **empty cloud subscription**: _Yes; tf code creates a resource group in the given subscription._
+- [x] Use **release package**; do not compile _Yes; uses pre-built docker image_
+- [x] Not connected to a particular **cloud account** _Correct; needs a subscription id as a parameter / variable_
+- [x] **Regular commits**; git workflow _Used feature branches + PRs; not really perfect, but probably good enough. It is hard to use proper branching strategies when working with terraform, because the long running "apply" commands require asynchronous working, often based on the latest changes._
+- [ ] **Documentation**: Pre-requisites
+- [ ] **Documentation**: High-Level Architecture
+- [ ] **Documentation**: Process instructions for provisioning
+- [x] Able to **start from a cloned git repo** _Yes; to be cloned into Ubuntu20.04 via WSL. Github actions would have been more fun though._
+- [ ] **Pre-requisites** clearly documented
+- [x] Contained **within a github repo** _Yes; actually it's one file._
+- [x] Deploys via **automated process** _Yes; all via terraform. ACI is probably not the ideal solution for seeding, but a good compromise in terms of keeping it all simple._
+- [x] Deploys **infrastructure using code** _Yes; infrastructure is defined via terraform._
+- [ ] Code is **clear**
+- [ ] Code contains **comments**
+- [ ] Coding is **consistent**
+- [x] **Security**: Network segmentation? VNet is created to secure the unencrypted communication between the db and the application
+- [x] **Security**: Secret storage _Secrets are stored in
     - environment variables in the ACI container
     - the web app settings; this is not ideal - a key vault would be better, but cannot be linked in this setup
     - environment variables on the local computer
     - the terraform state on the local computer; keeping the tf state local helps protecting the secrets; another option would be to store the tf state in an encrypted, dedicated storage account
-- [x] Security: Platform security features _Used VNets; additional features like web application firewall could have been used._
-- [x] Simplicity: No superfluous dependencies _To my best knowledge the code contains only the bare necessities._
-- [x] Simplicity: Not over engineered _Right; deliberately chosen the solution that was advertised on Microsofts website as a low-effort way to bring an app into the cloud - and not k8s (I am also not confident in k8s administration)._
-- [x] Resiliency: Auto scaling _Yes; configured to run on up to 10 instances and could be on more with a better app plan, although the current app would probably not really need it._
-- [x] Resiliency: Highly available frontend _Yes; achieved via CDN. Would probably not make much sense for this app, and there would be optimization opportunities like "Dynamic Site Acceleration (DSA)", but for the purpose of a demonstration the MS standard CDN should be good enough._
-- [ ] Resiliency: Highly available database
+- [x] **Security**: Platform security features _Used VNets; additional features like web application firewall could have been used._
+- [x] **Simplicity**: No superfluous dependencies _To my best knowledge the code contains only the bare necessities._
+- [x] **Simplicity**: Not over engineered _Right; deliberately chosen the solution that was advertised on Microsofts website as a low-effort way to bring an app into the cloud - and not k8s (I am also not confident in k8s administration)._
+- [x] **Resiliency**: Auto scaling _Yes; configured to run on up to 10 instances and could be on more with a better app plan, although the current app would probably not really need it._
+- [x] **Resiliency**: Highly available frontend _Yes; achieved via CDN. Would probably not make much sense for this app, and there would be optimization opportunities like "Dynamic Site Acceleration (DSA)", but for the purpose of a demonstration the MS standard CDN should be good enough._
+- [ ] **Resiliency**: Highly available database
