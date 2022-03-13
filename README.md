@@ -40,6 +40,7 @@ The application is deployed via a local computer with Ubuntu 20.04 and terraform
 * Some values are globally unique: the app name and its domain, etc. This means, that the application with this code can be installed only once. As someone has to test and inspect this code, I tried to keep the "run instructions" as simple as possible (3 variables are much easier to configure than 30), but those names are still changeable via tf variables.
 * I seed the db with the help of an ACI container that runs only once. While it fulfils the purpose, a solution with more observability (did seeding work? if not, why did it fail?) would be desireable.
 * I was not sure if the golang web server is production stable and secure. I assume one might check this in a real-life scenario and possibly combine it with nginx or apache2, or a better WAF.
+* Main decisions are logged in the adr directory.
 
 ## Requirement Checklist
 
