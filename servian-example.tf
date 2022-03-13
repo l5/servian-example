@@ -22,8 +22,6 @@ variable "subscription_id" {
     description = "The id of the azure subscription the app should be installed in"
 }
 
-# ToDo: Document setting env vars etc.
-
 terraform {
     required_providers {
         azurerm = {
