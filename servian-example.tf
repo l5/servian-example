@@ -15,6 +15,7 @@ variable "db_user" {
 variable "db_password" {
     type = string
     description = "The password for the postgresql db"
+    sensitive   = true
 }
 variable "subscription_id" {
     type = string
@@ -34,7 +35,11 @@ terraform {
 }
 
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = true
+    }
+  }
   subscription_id = var.subscription_id # should be explicit, as otherwise the infrastructure might land in the wrong one.
 }
 
@@ -103,18 +108,27 @@ resource "azurerm_app_service" "example" {
     WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
     VTT_DBUSER = var.db_user
     VTT_DBPASSWORD = var.db_password
+    # VTT_DBPASSWORD = "@Microsoft.KeyVault()"
     VTT_DBNAME = "postgres"
     VTT_DBPORT = 5432
     VTT_DBHOST = azurerm_postgresql_flexible_server.servian.fqdn
     VTT_LISTENHOST = "0.0.0.0"
     VTT_LISTENPORT = 80
   }
+  
   https_only = true
-  #app_settings = {
-  #  "DOCKER_REGISTRY_SERVER_URL"      = "https://mcr.microsoft.com",
-  #  "DOCKER_REGISTRY_SERVER_USERNAME" = "",
-  #  "DOCKER_REGISTRY_SERVER_PASSWORD" = "",
-  #}
+  
+  identity {
+    type = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.servian.id]
+  }
+}
+
+resource "azurerm_user_assigned_identity" "servian" {
+  resource_group_name = azurerm_resource_group.servian.name
+  location            = azurerm_resource_group.servian.location
+
+  name = "servian-example-app-uai"
 }
 
 resource "azurerm_app_service_virtual_network_swift_connection" "example" {
@@ -143,12 +157,14 @@ resource "azurerm_container_group" "servian-seeding" {
     environment_variables = { # ToDo: Set to secure
         WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
         VTT_DBUSER = var.db_user
-        VTT_DBPASSWORD = var.db_password
         VTT_DBNAME = "postgres"
         VTT_DBPORT = 5432
         VTT_DBHOST = azurerm_postgresql_flexible_server.servian.fqdn
         VTT_LISTENHOST = "0.0.0.0"
         VTT_LISTENPORT = 80
+    }
+    secure_environment_variables = {
+        VTT_DBPASSWORD = var.db_password
     }
     commands = ["/TechChallengeApp/TechChallengeApp", "updatedb", "-s"]
   
@@ -176,7 +192,7 @@ resource "azurerm_subnet" "serviansubnet" {
     service_delegation {
       name = "Microsoft.DBforPostgreSQL/flexibleServers"
       actions = [
-        "Microsoft.Network/virtualNetworks/subnets/action",
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
       ]
     }
   }
@@ -314,3 +330,54 @@ resource "azurerm_cdn_endpoint" "servian" {
   }
 }
 
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "servian" {
+  # ToDo: Should be in vnet
+  name                        = "serviankeyvault"
+  location                    = azurerm_resource_group.servian.location
+  resource_group_name         = azurerm_resource_group.servian.name
+  enabled_for_disk_encryption = true
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = false
+
+  sku_name = "standard"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Get",
+    ]
+
+    secret_permissions = [
+      "Get",
+      "Set",
+      "List"
+    ]
+
+    storage_permissions = [
+      "Get",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_secret" "dbpassword" {
+  name         = "DBPASSWORD"
+  value        = var.db_password
+  key_vault_id = azurerm_key_vault.servian.id
+}
+
+resource "azurerm_key_vault_access_policy" "servian" {
+  key_vault_id = azurerm_key_vault.servian.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_user_assigned_identity.servian.principal_id
+
+  secret_permissions = [
+    "Get",
+    "Set",
+    "List"
+  ]
+}
