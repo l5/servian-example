@@ -16,7 +16,7 @@ The application is deployed via a local computer with Ubuntu 20.04 and terraform
 
 ## Deploy via (linux) command line
 
-1. Clone repositoy
+1. Clone repository
 1. cd into cloned repository
 1. Set env variables:
    ```
