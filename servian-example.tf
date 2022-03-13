@@ -107,8 +107,11 @@ resource "azurerm_app_service" "example" {
   app_settings = {
     WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
     VTT_DBUSER = var.db_user
-    VTT_DBPASSWORD = var.db_password
-    # VTT_DBPASSWORD = "@Microsoft.KeyVault()"
+    # VTT_DBPASSWORD = var.db_password
+    /* The password should not be readable in the app settings; we only give a reference.
+     * Instructions: See https://pumpingco.de/blog/azure-key-vault-references-for-application-settings-with-terraform/
+    */
+    VTT_DBPASSWORD = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault.servian.vault_uri}secrets/${azurerm_key_vault_secret.dbpassword.name}/${azurerm_key_vault_secret.dbpassword.version})"
     VTT_DBNAME = "postgres"
     VTT_DBPORT = 5432
     VTT_DBHOST = azurerm_postgresql_flexible_server.servian.fqdn
