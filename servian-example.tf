@@ -144,12 +144,14 @@ resource "azurerm_container_group" "servian-seeding" {
     environment_variables = { # ToDo: Set to secure
         WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
         VTT_DBUSER = var.db_user
-        VTT_DBPASSWORD = var.db_password
         VTT_DBNAME = "postgres"
         VTT_DBPORT = 5432
         VTT_DBHOST = azurerm_postgresql_flexible_server.servian.fqdn
         VTT_LISTENHOST = "0.0.0.0"
         VTT_LISTENPORT = 80
+    }
+    secure_environment_variables = {
+      VTT_DBPASSWORD = var.db_password
     }
     commands = ["/TechChallengeApp/TechChallengeApp", "updatedb", "-s"]
   
