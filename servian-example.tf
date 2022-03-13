@@ -251,8 +251,8 @@ resource "azurerm_monitor_autoscale_setting" "servian" {
   profile {
     name = "default"
     capacity {
-      default = 1
-      minimum = 1
+      default = 2
+      minimum = 2
       maximum = 10
     }
     rule {
