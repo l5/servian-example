@@ -15,6 +15,7 @@ variable "db_user" {
 variable "db_password" {
     type = string
     description = "The password for the postgresql db"
+    sensitive   = true
 }
 variable "subscription_id" {
     type = string
