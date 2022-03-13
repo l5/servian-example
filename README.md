@@ -35,5 +35,33 @@
   * scalability was in practice much more limited than advertised on the web
   * container configuration is not well documented, especially via terraform
   * it seemed like via terraform it is possible to work on web apps, but not on container web apps.
+  * I did not find out how to pass a command to the container
   Therefore... looking at AKS, now.
 
+
+
+## Requirement Checklist
+
+- [x] Works in empty cloud subscription: Yes; creates a resource group.
+- [] Use release package; do not compile
+- [] Not connected to a particular cloud account
+[] Regular commits; git workflow
+[] Documentation: Pre-requisites
+[] Documentation: High-Level Architecture
+[] Documentation: Process instructions for provisioning
+[] Able to start from a cloned git repo
+[] Pre-requisites clearly documented
+[] Contained within a github repo
+[] Deploys via automated process
+[] Deploys infrastructure using code
+[] Code is clear
+[] Code contains comments
+[] Coding is consistent
+[] Security: Network segmentation?
+[] Security: Secret storage
+[] Security: Platform security features
+[] Simplicity: No superfluous dependencies
+[] Simplicity: Not over engineered
+[] Resiliency: Auto scaling
+[] Resiliency: Highly available frontend
+[] Resiliency: Highly available database
